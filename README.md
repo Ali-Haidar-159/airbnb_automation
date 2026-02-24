@@ -1,60 +1,58 @@
 # Airbnb End-to-End Automation
-**Python Playwright + Django + PostgreSQL**
 
----
+Airbnb UI automation framework built with Python, Playwright, Django, and PostgreSQL.
 
-## Quick Start (4 commands)
+Repository: `https://github.com/Ali-Haidar-159/airbnb_automation`
 
-```bash
-cd airbnb_automation
-python3 -m venv venv && source venv/bin/activate
-pip install -r requirements.txt && playwright install chromium
-python manage.py migrate && python manage.py run_airbnb_automation
-```
+## Features
 
----
+- Full 6-step Airbnb user journey automation.
+- Structured verification logging (`should be ..., found ...`) for each test case.
+- Data persistence to PostgreSQL for:
+- `testing` (test results)
+- `listing_data` (listing cards and detail updates)
+- `suggestion_data` (autocomplete suggestions)
+- `network_logs` (captured requests)
+- `console_logs` (captured browser console logs)
+- Run modes:
+- Desktop visible browser
+- Desktop headless
+- Mobile emulation (iPhone 14 Pro)
+- Mobile emulation headless
 
-## Overview
+## End-to-End Flow
 
-Automates a full real-user journey on https://www.airbnb.com/
-
-| Step | What it does |
-|---|---|
-| 01 | Open Airbnb, clear storage, dismiss popups, type random country |
-| 02 | Verify suggestion dropdown, icons, relevance, click one |
-| 03 | Navigate 3–8 months in calendar, select check-in & check-out |
-| 04 | Open guest picker, add 2–5 guests, click Search |
-| 05 | Verify results page, validate URL params, scrape listings |
-| 06 | Open random listing, capture title / subtitle / gallery images |
-
-All results saved to PostgreSQL. Screenshots saved to `screenshots/`.
-
----
+1. Landing, popup dismissal, destination input.
+2. Auto-suggestion checks and random selection.
+3. Date picker navigation and date selection.
+4. Guest picker interaction and search submit.
+5. Results page validation and listing scraping.
+6. Random listing details page verification and gallery extraction.
 
 ## Tech Stack
 
-| Tool | Purpose |
-|---|---|
-| Django 4.2 | ORM, Admin, Management Command |
-| Playwright 1.42+ | Browser automation |
-| psycopg2-binary | PostgreSQL driver |
-| python-dotenv | `.env` configuration |
-
----
+- Python 3.10+ (tested with Python 3.12)
+- Django 4.2.x
+- Playwright 1.42+
+- PostgreSQL
+- psycopg2-binary
+- python-dotenv
 
 ## Project Structure
 
-```
+```text
 airbnb_automation/
 ├── airbnb_automation/
-│   ├── settings.py         ← reads from .env
+│   ├── settings.py
 │   └── urls.py
 ├── automation/
-│   ├── models.py           ← 5 DB tables
-│   ├── admin.py            ← Django Admin
+│   ├── admin.py
+│   ├── apps.py
+│   ├── models.py
+│   ├── migrations/
 │   ├── services/
-│   │   ├── browser_service.py      ← Playwright wrapper
-│   │   └── database_service.py     ← All DB writes
+│   │   ├── browser_service.py
+│   │   └── database_service.py
 │   ├── steps/
 │   │   ├── step01_landing.py
 │   │   ├── step02_suggestion.py
@@ -63,49 +61,57 @@ airbnb_automation/
 │   │   ├── step05_results.py
 │   │   └── step06_details.py
 │   └── management/commands/
-│       └── run_airbnb_automation.py   ← ENTRY POINT
-├── screenshots/            ← auto-created
-├── .env                    ← DB credentials
+│       └── run_airbnb_automation.py
 ├── requirements.txt
 └── manage.py
 ```
 
----
+## Prerequisites
+
+- Git
+- Python 3.10+
+- PostgreSQL server (local or Docker)
+- Chromium dependencies for Playwright (Linux users may need additional system packages)
+
+## Clone the Repository
+
+```bash
+git clone https://github.com/Ali-Haidar-159/airbnb_automation.git
+cd airbnb_automation
+```
 
 ## Installation
 
-### 1. Navigate to project folder
-```bash
-cd airbnb_automation
-# Verify: ls should show manage.py and requirements.txt
-```
+1. Create and activate virtual environment
 
-### 2. Create virtual environment
 ```bash
 python3 -m venv venv
+source venv/bin/activate
 ```
 
-### 3. Activate it
-```bash
-source venv/bin/activate      # Linux/macOS
-venv\Scripts\activate         # Windows
+For Windows:
+
+```powershell
+python -m venv venv
+venv\Scripts\activate
 ```
 
-### 4. Install packages
+2. Install Python dependencies
+
 ```bash
+pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-### 5. Install Playwright browser (one time only)
+3. Install Playwright browser
+
 ```bash
 playwright install chromium
 ```
 
----
+## Environment Variables
 
-## Environment Configuration
-
-Edit `.env` if your DB credentials differ:
+Create `.env` at the project root:
 
 ```env
 DB_NAME=mydb
@@ -117,57 +123,90 @@ AIRBNB_URL=https://www.airbnb.com/
 SCREENSHOT_DIR=screenshots
 ```
 
----
+Notes:
+
+- `SCREENSHOT_DIR` is currently retained for compatibility with settings; screenshot capture is disabled in current code.
+- If `.env` is not present, `settings.py` falls back to default values shown above.
 
 ## Database Setup
 
+### Option A: Local PostgreSQL
+
+1. Create database and user (example):
+
+```sql
+CREATE DATABASE mydb;
+CREATE USER ali WITH PASSWORD '1234';
+GRANT ALL PRIVILEGES ON DATABASE mydb TO ali;
+```
+
+2. Ensure `.env` values match your DB credentials.
+
+### Option B: Docker PostgreSQL
+
 ```bash
-# Start PostgreSQL Docker container
-docker start <your-container-name>
-docker ps     # verify it shows as Up
+docker run --name airbnb-pg \
+  -e POSTGRES_DB=mydb \
+  -e POSTGRES_USER=ali \
+  -e POSTGRES_PASSWORD=1234 \
+  -p 5432:5432 \
+  -d postgres:16
+```
 
-# Create all tables
+## Migrations
+
+Run migrations after DB is ready:
+
+```bash
+python manage.py makemigrations
 python manage.py migrate
+```
 
-# Create admin user (for admin panel)
+If you only want this app:
+
+```bash
+python manage.py migrate automation
+```
+
+## Run the Automation
+
+Default (visible desktop browser):
+
+```bash
+python manage.py run_airbnb_automation
+```
+
+Other modes:
+
+```bash
+python manage.py run_airbnb_automation --headless
+python manage.py run_airbnb_automation --mobile
+
+```
+
+## Run Django Server and Admin
+
+Create admin user:
+
+```bash
 python manage.py createsuperuser
 ```
 
----
-
-## Running the Automation
-
-```bash
-# Default — visible browser
-python manage.py run_airbnb_automation
-
-# Headless (no window)
-python manage.py run_airbnb_automation --headless
-
-# Mobile emulation — iPhone 14 Pro (Bonus)
-python manage.py run_airbnb_automation --mobile
-
-# Mobile + Headless
-python manage.py run_airbnb_automation --mobile --headless
-```
-
----
-
-## Django Admin Panel
+Start server:
 
 ```bash
 python manage.py runserver
-# Open: http://127.0.0.1:8000/admin/
 ```
 
-| Table | Data |
-|---|---|
-| Test Results | All step results with pass/fail + comment |
-| Listings | Scraped titles, prices, images |
-| Suggestions | Search autocomplete items |
-| Network Logs | HTTP requests captured |
-| Console Logs | Browser console messages |
+Open admin panel:
 
----
+- `http://127.0.0.1:8000/admin/`
 
+## Database Tables
+
+- `testing`: high-level pass/fail results for each automation check.
+- `listing_data`: scraped listing cards and details updates.
+- `suggestion_data`: autocomplete suggestion text with search query.
+- `network_logs`: request method/url/status/resource type.
+- `console_logs`: browser console entries by level.
 
