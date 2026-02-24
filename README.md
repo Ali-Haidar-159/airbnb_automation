@@ -170,21 +170,4 @@ python manage.py runserver
 
 ---
 
-## Acceptance Criteria Status
-
-| # | Requirement | 
-|---|---|---|
-| 1 | Django framework | 
-| 2 | All credentials in `.env` only | 
-| 3 | README with instructions | 
-| 4 | Django Management Command | 
-| 5 | Modular OOP design | 
-| 6 | OOP best practices | 
-| 7 | Each step = one test case | 
-| 8 | Every test case stored with comment |
-| 9 | Full-page screenshot per step | 
-| 10 | Screenshots in dedicated folder | 
-| 11 | Console & Network logs in DB |
-
----
 
